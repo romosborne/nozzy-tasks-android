@@ -20,8 +20,9 @@ import com.google.android.gms.common.api.ApiException;
 import com.google.android.gms.tasks.Task;
 
 public class LoginActivity extends AppCompatActivity implements
-        View.OnClickListener{
+        View.OnClickListener {
 
+    public static final String ID_TOKEN_MESSAGE = "online.nozzy.tasks.id_token_message";
 
     private static final String TAG = "LoginActivity";
     private static final int RC_GET_TOKEN = 9002;
@@ -63,47 +64,52 @@ public class LoginActivity extends AppCompatActivity implements
         startActivityForResult(logInIntent, RC_GET_TOKEN);
     }
 
-    private void handleSignInResult(@NonNull Task<GoogleSignInAccount> completedTask){
-        try{
+    private void handleSignInResult(@NonNull Task<GoogleSignInAccount> completedTask) {
+        try {
             GoogleSignInAccount account = completedTask.getResult(ApiException.class);
-            updateUI(account);
+            // Build intent to launch TasksActivity
+            Intent intent = new Intent(this, TasksActivity.class);
+            intent.putExtra(ID_TOKEN_MESSAGE, account.getIdToken());
+            startActivity(intent);
 
-        }catch(ApiException e){
+            //updateUI(account);
+
+        } catch (ApiException e) {
             Log.w(TAG, "handleSignInResult:error", e);
             updateUI(null);
         }
     }
 
-    private void updateUI(@Nullable GoogleSignInAccount account){
-        if (account != null){
-            ((TextView)findViewById(R.id.status)).setText("Signed in");
+    private void updateUI(@Nullable GoogleSignInAccount account) {
+        if (account != null) {
+            ((TextView) findViewById(R.id.status)).setText("Signed in");
             String idToken = account.getIdToken();
+            Log.w(TAG, idToken);
             mIdTokenTextView.setText(getString(R.string.id_token_fmt, idToken));
-        }
-        else{
-            ((TextView)findViewById(R.id.status)).setText("Signed out");
+        } else {
+            ((TextView) findViewById(R.id.status)).setText("Signed out");
             mIdTokenTextView.setText("ID Token: null");
         }
 
     }
 
     @Override
-    public void onActivityResult(int requestCode, int resultCode, Intent data){
+    public void onActivityResult(int requestCode, int resultCode, Intent data) {
         super.onActivityResult(requestCode, resultCode, data);
 
-        if (requestCode == RC_GET_TOKEN){
+        if (requestCode == RC_GET_TOKEN) {
             Task<GoogleSignInAccount> task = GoogleSignIn.getSignedInAccountFromIntent(data);
             handleSignInResult(task);
         }
     }
 
     @Override
-    public void onClick(View v){
-switch (v.getId()){
-    case R.id.sign_in_button:
-        getIdToken();
-        break;
-}
+    public void onClick(View v) {
+        switch (v.getId()) {
+            case R.id.sign_in_button:
+                getIdToken();
+                break;
+        }
     }
 
 }
